@@ -8,7 +8,7 @@ from src.utils import get_password_hash
 
 
 def register_user_and_account(data: RegisterRequest, db: Session = Depends(get_db)):
-    user = User(email=data.email, password=get_password_hash(data.password))
+    user = User(phone=data.phone, password=get_password_hash(data.password))
 
     db.add(user)
     db.commit()
@@ -27,6 +27,6 @@ def register_user_and_account(data: RegisterRequest, db: Session = Depends(get_d
 
     return RegisterResponse(
         account_name=account.account_name,
-        email=user.email,
+        phone=user.phone,
         account_number=account.account_number,
     )
