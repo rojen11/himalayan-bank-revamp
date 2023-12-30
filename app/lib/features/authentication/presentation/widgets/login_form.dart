@@ -1,15 +1,45 @@
 import 'package:app/core/utils/constants.dart';
-import 'package:app/features/home/presentation/screens/home_screen.dart';
+import 'package:app/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:app/features/home/presentation/screens/screen_wrapper.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class LoginForm extends StatelessWidget {
-  const LoginForm({super.key});
+class LoginForm extends StatefulWidget {
+  LoginForm({super.key});
+
+  @override
+  State<LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<LoginForm> {
+  TextEditingController phoneController = TextEditingController();
+
+  TextEditingController passwordController = TextEditingController();
+
+  bool _isPasswordVisible = false;
+
+  void handleSubmit(BuildContext context) {
+    Provider.of<AuthProvider>(context, listen: false)
+        .login(phoneController.value.text, passwordController.value.text)
+        .then((value) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Login Successful")));
+
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => ScreenWrapper()));
+    }).catchError((e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextFormField(
+          keyboardType: TextInputType.number,
+          controller: phoneController,
           decoration: const InputDecoration(
             labelText: "Phone number",
             focusColor: primaryColor,
@@ -26,13 +56,18 @@ class LoginForm extends StatelessWidget {
           height: 20,
         ),
         TextFormField(
+          controller: passwordController,
           decoration: InputDecoration(
             suffixIcon: IconButton(
-                icon: const Icon(
-                  Icons.remove_red_eye_outlined,
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                   color: primaryColor,
                 ),
-                onPressed: () {}),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                }),
             labelText: "Password",
             focusColor: primaryColor,
             border: const UnderlineInputBorder(
@@ -43,7 +78,7 @@ class LoginForm extends StatelessWidget {
               borderSide: BorderSide(color: primaryColor),
             ),
           ),
-          obscureText: true,
+          obscureText: !_isPasswordVisible,
         ),
         const SizedBox(
           height: 75,
@@ -62,13 +97,7 @@ class LoginForm extends StatelessWidget {
                 ),
               ),
             ),
-            onPressed: () {
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomeScreen(),
-                  ));
-            },
+            onPressed: () => handleSubmit(context),
             child: const Text(
               "Login",
               style: TextStyle(
